@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gerenciamento de Pacientes</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --secondary-green: #059669;
+            --light-green: #d1fae5;
+            --dark-green: #047857;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-green);
+        }
+
+        .bg-secondary {
+            background-color: var(--secondary-green);
+        }
+
+        .bg-light-green {
+            background-color: var(--light-green);
+        }
+
+        .text-primary {
+            color: var(--primary-green);
+        }
+
+        .text-secondary {
+            color: var(--secondary-green);
+        }
+
+        .border-primary {
+            border-color: var(--primary-green);
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-green);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .profile-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-green);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+        }
+
+        .btn-primary {
+            background-color: var(--primary-green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-green);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-green);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 2px solid var(--primary-green);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-green);
+        }
+
+        .form-input {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-green);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .patient-card {
+            border-left: 4px solid var(--primary-green);
+            transition: all 0.3s;
+        }
+
+        .patient-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background-color: var(--primary-green);
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center">
+        <div class="gradient-bg min-h-screen w-full flex items-center justify-center">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+                <div class="text-center mb-8">
+                    <img src="fotov.jpg" alt="Foto de perfil" width="80" height="80" class="rounded-full mx-auto mb-4">
+                    <h1 class="text-2xl font-bold text-gray-800">Sistema de Gestão</h1>
+                    <p class="text-gray-600">Gerenciamento de Pacientes</p>
+                </div>
+
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                        <input type="text" id="username" class="form-input w-full" placeholder="Digite seu usuário"
+                            required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                        <input type="password" id="password" class="form-input w-full" placeholder="Digite sua senha"
+                            required>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full text-lg font-semibold">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Entrar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicação Principal -->
+    <div id="mainApp" class="hidden">
+        <!-- Cabeçalho -->
+        <header class="gradient-bg text-white shadow-lg">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <img src="fotov.jpg" height='50' viewBox='0 0 50 50' %3E%3Ccircle cx='25' cy='25' r='25'
+                            fill='white' /%3E%3Ctext x='25' y='30' text-anchor='middle' fill='%2310b981' font-size='16'
+                            font-family='Arial' %3E👨‍⚕️%3C/text%3E%3C/svg%3E" alt="Perfil"
+                            class="w-12 h-12 rounded-full">
+                        <div>
+                            <h1 class="text-xl font-bold">Sistema de Gestão de Pacientes</h1>
+                            <p class="text-sm opacity-90">Bem-vindo, Dr. Vinicius Pasolini</p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="btn-secondary">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Abas de Navegação -->
+        <nav class="bg-white shadow-sm border-b">
+            <div class="container mx-auto px-6">
+                <div class="flex space-x-8">
+                    <button onclick="mostrarAba('add')"
+                        class="tab-button py-4 px-6 font-medium transition-all duration-300 active" id="addTab">
+                        <i class="fas fa-user-plus mr-2"></i>Adicionar Paciente
+                    </button>
+                    <button onclick="mostrarAba('edit')"
+                        class="tab-button py-4 px-6 font-medium transition-all duration-300" id="editTab">
+                        <i class="fas fa-edit mr-2"></i>Gerenciar Pacientes
+                    </button>
+                    <button onclick="mostrarAba('dashboard')"
+                        class="tab-button py-4 px-6 font-medium transition-all duration-300" id="dashboardTab">
+                        <i class="fas fa-chart-bar mr-2"></i>Dashboard
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Container de Conteúdo -->
+        <div class="container mx-auto px-6 py-8">
+            <!-- Aba Adicionar Paciente -->
+            <div id="addContent" class="tab-content active">
+                <div class="max-w-2xl mx-auto">
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <i class="fas fa-user-plus text-primary mr-3"></i>
+                            Adicionar Novo Paciente
+                        </h2>
+
+                        <form id="addPatientForm" class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                                <input type="text" id="patientName" class="form-input w-full"
+                                    placeholder="Digite o nome completo do paciente" required>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Dia da Semana *</label>
+                                    <select id="dayOfWeek" class="form-input w-full" required>
+                                        <option value="">Selecione o dia</option>
+                                        <option value="segunda-feira">Segunda-feira</option>
+                                        <option value="terça-feira">Terça-feira</option>
+                                        <option value="quarta-feira">Quarta-feira</option>
+                                        <option value="quinta-feira">Quinta-feira</option>
+                                        <option value="sexta-feira">Sexta-feira</option>
+                                        <option value="sábado">Sábado</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Horário *</label>
+                                    <input type="time" id="appointmentTime" class="form-input w-full" required>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Frequência *</label>
+                                    <div class="flex items-center space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="frequency" value="Semanal"
+                                                class="form-radio text-primary" checked>
+                                            <span class="ml-2">Semanal</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="frequency" value="Quinzenal"
+                                                class="form-radio text-primary">
+                                            <span class="ml-2">Quinzenal</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Celular *</label>
+                                    <input type="tel" id="phoneNumber" class="form-input w-full"
+                                        placeholder="(31) 99708-7392" required>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end space-x-4">
+                                <button type="button" onclick="limparFormulario()" class="btn-secondary">
+                                    <i class="fas fa-times mr-2"></i>Limpar
+                                </button>
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-save mr-2"></i>Salvar Paciente
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Gerenciar Pacientes -->
+            <div id="editContent" class="tab-content">
+                <div class="card">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center mb-4 md:mb-0">
+                            <i class="fas fa-users text-primary mr-3"></i>
+                            Gerenciar Pacientes
+                        </h2>
+                        <div class="flex space-x-4">
+                            <input type="text" id="searchPatients" class="form-input" placeholder="Buscar pacientes..."
+                                onkeyup="filtrarPacientes()">
+                            <button onclick="carregarPacientes()" class="btn-primary">
+                                <i class="fas fa-sync-alt mr-2"></i>Atualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="patientsList" class="space-y-4">
+                        <!-- Pacientes serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Dashboard -->
+            <div id="dashboardContent" class="tab-content">
+                <div class="card text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-primary mr-3"></i>
+                        Dashboard Analytics
+                    </h2>
+
+                    <div class="bg-light-green p-8 rounded-xl mb-6">
+                        <i class="fas fa-chart-line text-6xl text-primary mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Relatórios e Análises</h3>
+                        <p class="text-gray-600 mb-6">Acesse dashboards detalhados com métricas e relatórios dos seus
+                            pacientes no Power BI.</p>
+
+                        <button onclick="abrirDashboard()" class="btn-primary text-lg px-8 py-4">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Abrir Dashboard Power BI
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <i class="fas fa-users text-3xl text-primary mb-3"></i>
+                            <h4 class="font-semibold text-gray-800">Total de Pacientes</h4>
+                            <p class="text-2xl font-bold text-primary" id="totalPatients">0</p>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <i class="fas fa-calendar-week text-3xl text-primary mb-3"></i>
+                            <h4 class="font-semibold text-gray-800">Consultas Semanais</h4>
+                            <p class="text-2xl font-bold text-primary" id="weeklyAppointments">0</p>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg border border-gray-200">
+                            <i class="fas fa-calendar-alt text-3xl text-primary mb-3"></i>
+                            <h4 class="font-semibold text-gray-800">Consultas Quinzenais</h4>
+                            <p class="text-2xl font-bold text-primary" id="biweeklyAppointments">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Paciente -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Editar Paciente</h3>
+                <button onclick="fecharModalEdicao()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form id="editPatientForm" class="space-y-6">
+                <input type="hidden" id="editPatientId">
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo *</label>
+                    <input type="text" id="editPatientName" class="form-input w-full" required>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Dia da Semana *</label>
+                        <select id="editDayOfWeek" class="form-input w-full" required>
+                            <option value="">Selecione o dia</option>
+                            <option value="segunda-feira">Segunda-feira</option>
+                            <option value="terça-feira">Terça-feira</option>
+                            <option value="quarta-feira">Quarta-feira</option>
+                            <option value="quinta-feira">Quinta-feira</option>
+                            <option value="sexta-feira">Sexta-feira</option>
+                            <option value="sábado">Sábado</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Horário *</label>
+                        <input type="time" id="editAppointmentTime" class="form-input w-full" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Frequência *</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="editFrequency" value="Semanal"
+                                    class="form-radio text-primary">
+                                <span class="ml-2">Semanal</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="editFrequency" value="Quinzenal"
+                                    class="form-radio text-primary">
+                                <span class="ml-2">Quinzenal</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Celular *</label>
+                        <input type="tel" id="editPhoneNumber" class="form-input w-full" required>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="fecharModalEdicao()" class="btn-secondary">
+                        <i class="fas fa-times mr-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save mr-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuração
+        const CONFIG = {
+            USERNAME: 'psicologo',
+            PASSWORD: 'admin123',
+            API_URL: 'http://localhost:3000/pacientes', // Substitua pelo seu endpoint real
+            DASHBOARD_URL: 'https://app.powerbi.com'
+        };
+
+        // Estado global
+        let pacientes = [];
+        let idEditandoAtual = null;
+
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function () {
+            carregarPacientesDaAPI();
+            configurarEventListeners();
+        });
+
+        function configurarEventListeners() {
+            // Formulário de login
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+            // Formulário de adicionar paciente
+            document.getElementById('addPatientForm').addEventListener('submit', handleAdicionarPaciente);
+
+            // Formulário de editar paciente
+            document.getElementById('editPatientForm').addEventListener('submit', handleEditarPaciente);
+
+            // Formatação de número de telefone
+            document.getElementById('phoneNumber').addEventListener('input', formatarTelefone);
+            document.getElementById('editPhoneNumber').addEventListener('input', formatarTelefone);
+        }
+
+        // Autenticação
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === CONFIG.USERNAME && password === CONFIG.PASSWORD) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                carregarPacientesDaAPI();
+                mostrarNotificacao('Login realizado com sucesso!', 'success');
+            } else {
+                mostrarNotificacao('Usuário ou senha incorretos!', 'error');
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            mostrarNotificacao('Logout realizado com sucesso!', 'success');
+        }
+
+        // Navegação por abas
+        function mostrarAba(nomeAba) {
+            // Esconder todas as abas
+            document.querySelectorAll('.tab-content').forEach(aba => {
+                aba.classList.remove('active');
+            });
+
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Mostrar aba selecionada
+            const abaConteudo = document.getElementById(nomeAba + 'Content');
+            const abaBotao = document.getElementById(nomeAba + 'Tab');
+
+            if (abaConteudo) abaConteudo.classList.add('active');
+            if (abaBotao) abaBotao.classList.add('active');
+
+            // Carregar pacientes se a aba de edição for selecionada
+            if (nomeAba === 'edit') {
+                carregarPacientesDaAPI();
+            }
+        }
+
+        // Gerenciamento de pacientes
+        async function carregarPacientesDaAPI() {
+            try {
+                const response = await fetch('http://localhost:3000/pacientes'); // URL do json-server
+                if (!response.ok) throw new Error('Erro ao carregar pacientes');
+
+                pacientes = await response.json(); // Recebe a lista direto do json-server
+                carregarPacientes(); // Atualiza a interface
+                atualizarEstatisticasDashboard();
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao carregar pacientes', 'error');
+            }
+        }
+
+
+        async function handleAdicionarPaciente(e) {
+            e.preventDefault();
+
+            const frequencia = document.querySelector('input[name="frequency"]:checked').value;
+
+            const dadosPaciente = {
+                nome: document.getElementById('patientName').value.trim(),
+                dia: document.getElementById('dayOfWeek').value,
+                hora: document.getElementById('appointmentTime').value,
+                quinzenal: frequencia === 'Quinzenal',
+                celular: document.getElementById('phoneNumber').value.trim()
+            };
+
+            // Validação
+            if (!validarDadosPaciente(dadosPaciente)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dadosPaciente)
+                });
+
+                if (!response.ok) throw new Error('Erro ao adicionar paciente');
+
+                const novoPaciente = await response.json();
+                pacientes.push(novoPaciente);
+                limparFormulario();
+                mostrarNotificacao('Paciente adicionado com sucesso!', 'success');
+                atualizarEstatisticasDashboard();
+                carregarPacientes();
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao adicionar paciente', 'error');
+            }
+        }
+
+        async function handleEditarPaciente(e) {
+            e.preventDefault();
+
+            const frequencia = document.querySelector('input[name="editFrequency"]:checked').value;
+
+            const dadosPaciente = {
+                id: document.getElementById('editPatientId').value,
+                nome: document.getElementById('editPatientName').value.trim(),
+                dia: document.getElementById('editDayOfWeek').value,
+                hora: document.getElementById('editAppointmentTime').value,
+                quinzenal: frequencia === 'Quinzenal',
+                celular: document.getElementById('editPhoneNumber').value.trim()
+            };
+
+            // Validação
+            if (!validarDadosPaciente(dadosPaciente)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${CONFIG.API_URL}/${dadosPaciente.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dadosPaciente)
+                });
+
+                if (!response.ok) throw new Error('Erro ao atualizar paciente');
+
+                const pacienteAtualizado = await response.json();
+                const indice = pacientes.findIndex(p => p.id === pacienteAtualizado.id);
+
+                if (indice !== -1) {
+                    pacientes[indice] = pacienteAtualizado;
+                    carregarPacientes();
+                    fecharModalEdicao();
+                    mostrarNotificacao('Paciente atualizado com sucesso!', 'success');
+                    atualizarEstatisticasDashboard();
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao atualizar paciente', 'error');
+            }
+        }
+
+        async function excluirPaciente(id) {
+            if (!confirm('Tem certeza que deseja excluir este paciente?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${CONFIG.API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Erro ao excluir paciente');
+
+                pacientes = pacientes.filter(p => p.id !== id);
+                carregarPacientes();
+                mostrarNotificacao('Paciente excluído com sucesso!', 'success');
+                atualizarEstatisticasDashboard();
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao excluir paciente', 'error');
+            }
+        }
+
+        function validarDadosPaciente(dados) {
+            if (!dados.nome || dados.nome.length < 2) {
+                mostrarNotificacao('Nome deve ter pelo menos 2 caracteres!', 'error');
+                return false;
+            }
+
+            if (!dados.dia) {
+                mostrarNotificacao('Selecione o dia da semana!', 'error');
+                return false;
+            }
+
+            if (!dados.hora) {
+                mostrarNotificacao('Selecione o horário!', 'error');
+                return false;
+            }
+
+            if (!dados.celular || dados.celular.length < 10) {
+                mostrarNotificacao('Número de celular inválido!', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        function carregarPacientes() {
+            const listaPacientes = document.getElementById('patientsList');
+
+            if (pacientes.length === 0) {
+                listaPacientes.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-500 mb-2">Nenhum paciente cadastrado</h3>
+                    <p class="text-gray-400">Adicione seu primeiro paciente para começar.</p>
+                </div>
+            `;
+                return;
+            }
+
+            const pacientesHTML = pacientes.map(paciente => `
+            <div class="patient-card card" data-patient-name="${paciente.nome.toLowerCase()}">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="flex-1 mb-4 md:mb-0">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                            <i class="fas fa-user text-primary mr-2"></i>
+                            ${paciente.nome}
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div>
+                                <i class="fas fa-calendar-day text-primary mr-2"></i>
+                                <strong>Dia:</strong> ${paciente.dia.charAt(0).toUpperCase() + paciente.dia.slice(1)}
+                            </div>
+                            <div>
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                <strong>Horário:</strong> ${paciente.hora}
+                            </div>
+                            <div>
+                                <i class="fas fa-repeat text-primary mr-2"></i>
+                                <strong>Frequência:</strong> ${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}
+                            </div>
+                            <div>
+                                <i class="fas fa-phone text-primary mr-2"></i>
+                                <strong>Celular:</strong> ${paciente.celular}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="editarPaciente('${paciente.id}')" class="btn-secondary">
+                            <i class="fas fa-edit mr-1"></i>Editar
+                        </button>
+                        <button onclick="excluirPaciente('${paciente.id}')" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-all">
+                            <i class="fas fa-trash mr-1"></i>Excluir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+            listaPacientes.innerHTML = pacientesHTML;
+        }
+
+        function editarPaciente(id) {
+            const paciente = pacientes.find(p => p.id === id);
+            if (!paciente) return;
+
+            document.getElementById('editPatientId').value = paciente.id;
+            document.getElementById('editPatientName').value = paciente.nome;
+            document.getElementById('editDayOfWeek').value = paciente.dia;
+            document.getElementById('editAppointmentTime').value = paciente.hora;
+            document.querySelector(`input[name="editFrequency"][value="${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}"]`).checked = true;
+            document.getElementById('editPhoneNumber').value = paciente.celular;
+
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+        }
+
+        function fecharModalEdicao() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('flex');
+        }
+
+        function filtrarPacientes() {
+            const termoBusca = document.getElementById('searchPatients').value.toLowerCase();
+            const cardsPacientes = document.querySelectorAll('.patient-card');
+
+            cardsPacientes.forEach(card => {
+                const nomePaciente = card.getAttribute('data-patient-name');
+                if (nomePaciente.includes(termoBusca)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function limparFormulario() {
+            document.getElementById('addPatientForm').reset();
+        }
+
+        // Dashboard
+        function atualizarEstatisticasDashboard() {
+            const total = pacientes.length;
+            const semanais = pacientes.filter(p => !p.quinzenal).length;
+            const quinzenais = pacientes.filter(p => p.quinzenal).length;
+
+            document.getElementById('totalPatients').textContent = total;
+            document.getElementById('weeklyAppointments').textContent = semanais;
+            document.getElementById('biweeklyAppointments').textContent = quinzenais;
+        }
+
+        function abrirDashboard() {
+            window.open(CONFIG.DASHBOARD_URL, '_blank');
+            mostrarNotificacao('Redirecionando para o Power BI...', 'success');
+        }
+
+        // Funções utilitárias
+        function formatarTelefone(e) {
+            let valor = e.target.value.replace(/\D/g, '');
+
+            if (valor.length >= 11) {
+                valor = valor.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+            } else if (valor.length >= 7) {
+                valor = valor.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            } else if (valor.length >= 3) {
+                valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            } else if (valor.length >= 1) {
+                valor = valor.replace(/^(\d{0,2})/, '($1');
+            }
+
+            e.target.value = valor;
+        }
+
+        function mostrarNotificacao(mensagem, tipo = 'success') {
+            const notificacao = document.createElement('div');
+            notificacao.className = `notification ${tipo}`;
+            notificacao.innerHTML = `
+            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+            ${mensagem}
+        `;
+
+            document.body.appendChild(notificacao);
+
+            setTimeout(() => {
+                notificacao.remove();
+            }, 3000);
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function (event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                fecharModalEdicao();
+            }
+        }
+    </script>
+</body>
+
+</html>
