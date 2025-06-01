@@ -676,7 +676,7 @@
         }
 
         // Gerenciamento de pacientes
-        async function carregarPacientesDaAPI() {
+         async function carregarPacientesDaAPI() {
             try {
                 const response = await fetch(CONFIG.API_URL + '/latest', {
                     headers: {
@@ -689,13 +689,13 @@
 
                 const data = await response.json();
                 console.log('Dados completos recebidos:', data);
-
+                
                 // Acesso correto aos pacientes dentro da propriedade pacientes
                 const pacientesData = data.record?.pacientes || [];
-
+                
                 // Garante que é um array
                 pacientes = Array.isArray(pacientesData) ? pacientesData : [];
-
+                
                 console.log('Pacientes carregados:', pacientes);
                 carregarPacientes();
                 atualizarEstatisticasDashboard();
