@@ -472,6 +472,7 @@
             API_URL: 'https://api.jsonbin.io/v3/b/683b97298960c979a5a3a483',
             API_KEY: '$2a$10$C8Gd.lDG8n41SuN9mhADSOBLPplIWnyD/BPy80O2c1cjmvfW5KSkW',
             DASHBOARD_URL: 'https://app.powerbi.com'
+
         };
 
         // Estado global
@@ -553,18 +554,23 @@
             try {
                 const response = await fetch(CONFIG.API_URL + '/latest', {
                     headers: {
-                        'X-Master-Key': CONFIG.API_KEY
+                        'X-Master-Key': CONFIG.API_KEY,
+                        'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (!response.ok) throw new Error('Erro ao carregar pacientes');
 
                 const data = await response.json();
-                pacientes = data.record || []; // JSONBin armazena os dados em data.record
+
+                // Garante que pacientes seja sempre um array
+                pacientes = Array.isArray(data.record) ? data.record : [];
+
                 carregarPacientes();
                 atualizarEstatisticasDashboard();
             } catch (error) {
                 console.error('Erro:', error);
+                pacientes = []; // Fallback para array vazio em caso de erro
                 mostrarNotificacao('Erro ao carregar pacientes', 'error');
             }
         }
@@ -595,15 +601,15 @@
                         'X-Master-Key': CONFIG.API_KEY
                     }
                 });
-                
+
                 if (!getResponse.ok) throw new Error('Erro ao obter dados atuais');
-                
+
                 const currentData = await getResponse.json();
                 const currentPatients = currentData.record || [];
-                
+
                 // Adicionamos o novo paciente
                 const newPatients = [...currentPatients, dadosPaciente];
-                
+
                 // Atualizamos o bin completo
                 const putResponse = await fetch(CONFIG.API_URL, {
                     method: 'PUT',
@@ -653,17 +659,17 @@
                         'X-Master-Key': CONFIG.API_KEY
                     }
                 });
-                
+
                 if (!getResponse.ok) throw new Error('Erro ao obter dados atuais');
-                
+
                 const currentData = await getResponse.json();
                 let currentPatients = currentData.record || [];
-                
+
                 // Atualizamos o paciente específico
-                currentPatients = currentPatients.map(p => 
+                currentPatients = currentPatients.map(p =>
                     p.id === dadosPaciente.id ? dadosPaciente : p
                 );
-                
+
                 // Atualizamos o bin completo
                 const putResponse = await fetch(CONFIG.API_URL, {
                     method: 'PUT',
@@ -699,15 +705,15 @@
                         'X-Master-Key': CONFIG.API_KEY
                     }
                 });
-                
+
                 if (!getResponse.ok) throw new Error('Erro ao obter dados atuais');
-                
+
                 const currentData = await getResponse.json();
                 let currentPatients = currentData.record || [];
-                
+
                 // Removemos o paciente
                 currentPatients = currentPatients.filter(p => p.id !== id);
-                
+
                 // Atualizamos o bin completo
                 const putResponse = await fetch(CONFIG.API_URL, {
                     method: 'PUT',
@@ -755,17 +761,10 @@
         }
 
         function carregarPacientes() {
-            const listaPacientes = document.getElementById('patientsList');
-
-            if (pacientes.length === 0) {
-                listaPacientes.innerHTML = `
-                <div class="text-center py-12">
-                    <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-500 mb-2">Nenhum paciente cadastrado</h3>
-                    <p class="text-gray-400">Adicione seu primeiro paciente para começar.</p>
-                </div>
-            `;
-                return;
+            // Garante que pacientes é array
+            if (!Array.isArray(pacientes)) {
+                console.error('Pacientes não é array:', pacientes);
+                pacientes = [];
             }
 
             const pacientesHTML = pacientes.map(paciente => `
@@ -903,6 +902,9 @@
                 fecharModalEdicao();
             }
         }
+
+        const data = await response.json();
+        console.log('Dados recebidos:', data); // Verifique no console do navegador
     </script>
 </body>
 
