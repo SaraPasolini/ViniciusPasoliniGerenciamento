@@ -972,11 +972,11 @@
                             </div>
                             <div>
                                 <i class="fas fa-computer text-primary mr-2"></i>
-                                <strong>Horário:</strong> ${paciente.tipo ? 'Presencial' : 'Online'}
+                                <strong>Modalidade:</strong> ${paciente.tipo ? 'Presencial' : 'Online'}
                             </div>
                             <div>
                                 <i class="fas fa-question-circle text-primary mr-2"></i>
-                                <strong>Horário:</strong> ${paciente.jápaciente ? 'Sim' : 'Não'}
+                                <strong>Já é pacientes:</strong> ${paciente.jápaciente ? 'Sim' : 'Não'}
                             </div>
                             <div>
                                 <i class="fas fa-repeat text-primary mr-2"></i>
@@ -988,7 +988,7 @@
                             </div>
                             <div>
                                <i class="fas fa-book text-primary mr-2"></i>
-                                <strong>Horário:</strong> ${paciente.obs}
+                                <strong>Observações:</strong> ${paciente.obs}
                             </div>
                         </div>
                     </div>
@@ -1008,22 +1008,43 @@
         }
 
         function editarPaciente(id) {
-            const paciente = pacientes.find(p => p.id === id);
-            if (!paciente) return;
+    const paciente = pacientes.find(p => p.id === id);
+    if (!paciente) return;
 
-            document.getElementById('editPatientId').value = paciente.id;
-            document.getElementById('editPatientName').value = paciente.nome;
-            document.getElementById('editDayOfWeek').value = paciente.dia;
-            document.getElementById('editAppointmentTime').value = paciente.hora;
-            document.querySelector(`input[name="editFrequency"][value="${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}"]`).checked = true;
-            document.getElementById('editPhoneNumber').value = paciente.celular;
-            document.querySelector(`input[name="editFrequency"][value="${paciente.presencial ? 'Presencial' : 'Online'}"]`).checked = true;
-            document.getElementById('editAppointmentTime').value = paciente.obs;
-            document.querySelector(`input[name="editFrequency"][value="${paciente.jápaciente ? 'Sim' : 'Nãa'}"]`).checked = true;
+    // Preenche os campos básicos
+    document.getElementById('editPatientId').value = paciente.id;
+    document.getElementById('editPatientName').value = paciente.nome;
+    document.getElementById('editDayOfWeek').value = paciente.dia;
+    document.getElementById('editAppointmentTime').value = paciente.hora;
+    document.getElementById('editPhoneNumber').value = paciente.celular;
+    document.getElementById('editAppointmentTime').value = paciente.obs;
 
-            document.getElementById('editModal').classList.remove('hidden');
-            document.getElementById('editModal').classList.add('flex');
-        }
+    // Preenche radio buttons COM VERIFICAÇÃO
+    const modalidade = paciente.tipo === 'presencial' ? 'Presencial' : 'Online';
+    const modalidadeRadio = document.querySelector(`input[name="editModalidade"][value="${modalidade}"]`);
+    
+    if (modalidadeRadio) {
+        modalidadeRadio.checked = true;
+    } else {
+        console.error(`Radio button para modalidade "${modalidade}" não encontrado!`);
+    }
+
+    // Verificação para frequência
+    const frequenciaRadio = document.querySelector(`input[name="editFrequency"][value="${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}"]`);
+    if (frequenciaRadio) {
+        frequenciaRadio.checked = true;
+    }
+
+    // Verificação para já paciente
+    const jaPacienteRadio = document.querySelector(`input[name="editJaPaciente"][value="${paciente.jápaciente ? 'Sim' : 'Não'}"]`);
+    if (jaPacienteRadio) {
+        jaPacienteRadio.checked = true;
+    }
+
+    // Exibe o modal
+    document.getElementById('editModal').classList.remove('hidden');
+    document.getElementById('editModal').classList.add('flex');
+}
 
         function fecharModalEdicao() {
             document.getElementById('editModal').classList.add('hidden');
