@@ -171,6 +171,27 @@
                 opacity: .5;
             }
         }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .textarea-obs {
+            min-height: 100px;
+            resize: vertical;
+        }
     </style>
 </head>
 
@@ -240,6 +261,11 @@
                     <button onclick="mostrarAba('edit')"
                         class="tab-button py-4 px-6 font-medium transition-all duration-300" id="editTab">
                         <i class="fas fa-edit mr-2"></i>Gerenciar Pacientes
+                    </button>
+                    <button onclick="mostrarAba('requests')"
+                        class="tab-button py-4 px-6 font-medium transition-all duration-300 relative" id="requestsTab">
+                        <i class="fas fa-calendar-check mr-2"></i>Solicitações
+                        <span id="requestsBadge" class="notification-badge hidden">0</span>
                     </button>
                     <button onclick="mostrarAba('dashboard')"
                         class="tab-button py-4 px-6 font-medium transition-all duration-300" id="dashboardTab">
@@ -311,6 +337,47 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Consulta
+                                        *</label>
+                                    <div class="flex items-center space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="appointmentType" value="presencial"
+                                                class="form-radio text-primary" checked>
+                                            <span class="ml-2">Presencial</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="appointmentType" value="online"
+                                                class="form-radio text-primary">
+                                            <span class="ml-2">Online</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Já é paciente? *</label>
+                                    <div class="flex items-center space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="isPatient" value="true"
+                                                class="form-radio text-primary" checked>
+                                            <span class="ml-2">Sim</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="isPatient" value="false"
+                                                class="form-radio text-primary">
+                                            <span class="ml-2">Não</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                                <textarea id="observations" class="form-input textarea-obs w-full"
+                                    placeholder="Digite observações sobre o paciente"></textarea>
+                            </div>
+
                             <div class="flex justify-end space-x-4">
                                 <button type="button" onclick="limparFormulario()" class="btn-secondary">
                                     <i class="fas fa-times mr-2"></i>Limpar
@@ -335,7 +402,7 @@
                         <div class="flex space-x-4">
                             <input type="text" id="searchPatients" class="form-input" placeholder="Buscar pacientes..."
                                 onkeyup="filtrarPacientes()">
-                            <button onclick="carregarPacientes()" class="btn-primary">
+                            <button onclick="carregarPacientesDaAPI()" class="btn-primary">
                                 <i class="fas fa-sync-alt mr-2"></i>Atualizar
                             </button>
                         </div>
@@ -343,6 +410,25 @@
 
                     <div id="patientsList" class="space-y-4">
                         <!-- Pacientes serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Solicitações de Reagendamento -->
+            <div id="requestsContent" class="tab-content">
+                <div class="card">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center mb-4 md:mb-0">
+                            <i class="fas fa-calendar-check text-primary mr-3"></i>
+                            Solicitações de Reagendamento
+                        </h2>
+                        <button onclick="carregarPacientesDaAPI()" class="btn-primary">
+                            <i class="fas fa-sync-alt mr-2"></i>Atualizar
+                        </button>
+                    </div>
+
+                    <div id="requestsList" class="space-y-4">
+                        <!-- Solicitações serão carregadas aqui -->
                     </div>
                 </div>
             </div>
@@ -452,6 +538,45 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Consulta *</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="editAppointmentType" value="presencial"
+                                    class="form-radio text-primary" checked>
+                                <span class="ml-2">Presencial</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="editAppointmentType" value="online"
+                                    class="form-radio text-primary">
+                                <span class="ml-2">Online</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Já é paciente? *</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="editIsPatient" value="true" class="form-radio text-primary"
+                                    checked>
+                                <span class="ml-2">Sim</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="editIsPatient" value="false" class="form-radio text-primary">
+                                <span class="ml-2">Não</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                    <textarea id="editObservations" class="form-input textarea-obs w-full"
+                        placeholder="Digite observações sobre o paciente"></textarea>
+                </div>
+
                 <div class="flex justify-end space-x-4">
                     <button type="button" onclick="fecharModalEdicao()" class="btn-secondary">
                         <i class="fas fa-times mr-2"></i>Cancelar
@@ -463,19 +588,19 @@
             </form>
         </div>
     </div>
-
     <script>
         // Configuração
         const CONFIG = {
             USERNAME: 'psicologo',
             PASSWORD: 'admin123',
-            API_URL: 'https://api.jsonbin.io/v3/b/683b97298960c979a5a3a483',
+            API_URL: 'https://api.jsonbin.io/v3/b/683c8cd08960c979a5a3def8',
             API_KEY: '$2a$10$C8Gd.lDG8n41SuN9mhADSOBLPplIWnyD/BPy80O2c1cjmvfW5KSkW',
             DASHBOARD_URL: 'https://app.powerbi.com'
         };
 
         // Estado global
         let pacientes = [];
+        let reagendamentos = [];
         let idEditandoAtual = null;
 
         // Inicializar aplicação
@@ -542,9 +667,11 @@
             if (abaConteudo) abaConteudo.classList.add('active');
             if (abaBotao) abaBotao.classList.add('active');
 
-            // Carregar pacientes se a aba de edição for selecionada
+            // Carregar dados específicos para cada aba
             if (nomeAba === 'edit') {
-                carregarPacientesDaAPI();
+                carregarPacientes();
+            } else if (nomeAba === 'requests') {
+                carregarReagendamentos();
             }
         }
 
@@ -558,25 +685,39 @@
                     }
                 });
 
-                if (!response.ok) throw new Error('Erro ao carregar pacientes');
+                if (!response.ok) throw new Error('Erro ao carregar dados');
 
                 const data = await response.json();
                 console.log('Dados completos recebidos:', data);
-                
-                // Acesso correto aos pacientes dentro da propriedade pacientes
-                const pacientesData = data.record?.pacientes || [];
-                
-                // Garante que é um array
-                pacientes = Array.isArray(pacientesData) ? pacientesData : [];
-                
+
+                // Acesso correto aos pacientes e reagendamentos
+                pacientes = Array.isArray(data.record?.pacientes) ? data.record.pacientes : [];
+                reagendamentos = Array.isArray(data.record?.reagendamentos) ? data.record.reagendamentos : [];
+
                 console.log('Pacientes carregados:', pacientes);
+                console.log('Reagendamentos carregados:', reagendamentos);
+
                 carregarPacientes();
+                carregarReagendamentos();
                 atualizarEstatisticasDashboard();
+                atualizarBadgeReagendamentos();
             } catch (error) {
                 console.error('Erro:', error);
                 pacientes = [];
+                reagendamentos = [];
                 carregarPacientes();
-                mostrarNotificacao('Erro ao carregar pacientes. Verifique o console.', 'error');
+                carregarReagendamentos();
+                mostrarNotificacao('Erro ao carregar dados. Verifique o console.', 'error');
+            }
+        }
+
+        function atualizarBadgeReagendamentos() {
+            const badge = document.getElementById('requestsBadge');
+            if (reagendamentos.length > 0) {
+                badge.textContent = reagendamentos.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
             }
         }
 
@@ -584,6 +725,8 @@
             e.preventDefault();
 
             const frequencia = document.querySelector('input[name="frequency"]:checked').value;
+            const tipoConsulta = document.querySelector('input[name="appointmentType"]:checked').value;
+            const jaPaciente = document.querySelector('input[name="isPatient"]:checked').value === 'true';
 
             const dadosPaciente = {
                 nome: document.getElementById('patientName').value.trim(),
@@ -591,6 +734,9 @@
                 hora: document.getElementById('appointmentTime').value,
                 quinzenal: frequencia === 'Quinzenal',
                 celular: document.getElementById('phoneNumber').value.trim(),
+                tipo: tipoConsulta,
+                jápaciente: jaPaciente,
+                obs: document.getElementById('observations').value.trim(),
                 id: Date.now().toString() // Geramos um ID único
             };
 
@@ -606,15 +752,16 @@
                         'X-Master-Key': CONFIG.API_KEY
                     }
                 });
-                
+
                 if (!getResponse.ok) throw new Error('Erro ao obter dados atuais');
-                
+
                 const currentData = await getResponse.json();
                 const currentPatients = currentData.record?.pacientes || [];
-                
+                const currentReagendamentos = currentData.record?.reagendamentos || [];
+
                 // Adicionamos o novo paciente
                 const newPatients = [...currentPatients, dadosPaciente];
-                
+
                 // Atualizamos o bin completo mantendo a estrutura
                 const putResponse = await fetch(CONFIG.API_URL, {
                     method: 'PUT',
@@ -623,7 +770,8 @@
                         'X-Master-Key': CONFIG.API_KEY
                     },
                     body: JSON.stringify({
-                        pacientes: newPatients  // Mantemos a estrutura { pacientes: [] }
+                        pacientes: newPatients,
+                        reagendamentos: currentReagendamentos
                     })
                 });
 
@@ -644,6 +792,8 @@
             e.preventDefault();
 
             const frequencia = document.querySelector('input[name="editFrequency"]:checked').value;
+            const tipoConsulta = document.querySelector('input[name="editAppointmentType"]:checked').value;
+            const jaPaciente = document.querySelector('input[name="editIsPatient"]:checked').value === 'true';
 
             const dadosPaciente = {
                 id: document.getElementById('editPatientId').value,
@@ -651,7 +801,10 @@
                 dia: document.getElementById('editDayOfWeek').value,
                 hora: document.getElementById('editAppointmentTime').value,
                 quinzenal: frequencia === 'Quinzenal',
-                celular: document.getElementById('editPhoneNumber').value.trim()
+                celular: document.getElementById('editPhoneNumber').value.trim(),
+                tipo: tipoConsulta,
+                jápaciente: jaPaciente,
+                obs: document.getElementById('editObservations').value.trim()
             };
 
             // Validação
@@ -666,17 +819,18 @@
                         'X-Master-Key': CONFIG.API_KEY
                     }
                 });
-                
+
                 if (!getResponse.ok) throw new Error('Erro ao obter dados atuais');
-                
+
                 const currentData = await getResponse.json();
                 let currentPatients = currentData.record?.pacientes || [];
-                
+                const currentReagendamentos = currentData.record?.reagendamentos || [];
+
                 // Atualiza o paciente
-                currentPatients = currentPatients.map(p => 
+                currentPatients = currentPatients.map(p =>
                     p.id === dadosPaciente.id ? dadosPaciente : p
                 );
-                
+
                 // Atualiza mantendo a estrutura
                 const putResponse = await fetch(CONFIG.API_URL, {
                     method: 'PUT',
@@ -685,7 +839,8 @@
                         'X-Master-Key': CONFIG.API_KEY
                     },
                     body: JSON.stringify({
-                        pacientes: currentPatients
+                        pacientes: currentPatients,
+                        reagendamentos: currentReagendamentos
                     })
                 });
 
@@ -714,15 +869,16 @@
                         'X-Master-Key': CONFIG.API_KEY
                     }
                 });
-                
+
                 if (!getResponse.ok) throw new Error('Erro ao obter dados atuais');
-                
+
                 const currentData = await getResponse.json();
                 let currentPatients = currentData.record?.pacientes || [];
-                
+                const currentReagendamentos = currentData.record?.reagendamentos || [];
+
                 // Removemos o paciente
                 currentPatients = currentPatients.filter(p => p.id !== id);
-                
+
                 // Atualizamos o bin completo
                 const putResponse = await fetch(CONFIG.API_URL, {
                     method: 'PUT',
@@ -768,6 +924,16 @@
                 return false;
             }
 
+            if (!dados.tipo) {
+                mostrarNotificacao('Selecione um tipo válido!', 'error');
+                return false;
+            }
+
+            if (!dados.obs) {
+                mostrarNotificacao('Observação inválida!', 'error');
+                return false;
+            }
+
             return true;
         }
 
@@ -809,12 +975,24 @@
                                 <strong>Horário:</strong> ${paciente.hora}
                             </div>
                             <div>
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                <strong>Horário:</strong> ${paciente.tipo ? 'Presencial' : 'Online'}
+                            </div>
+                            <div>
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                <strong>Horário:</strong> ${paciente.jápaciente ? 'Sim' : 'Não'}
+                            </div>
+                            <div>
                                 <i class="fas fa-repeat text-primary mr-2"></i>
                                 <strong>Frequência:</strong> ${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}
                             </div>
                             <div>
                                 <i class="fas fa-phone text-primary mr-2"></i>
                                 <strong>Celular:</strong> ${paciente.celular}
+                            </div>
+                            <div>
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                <strong>Horário:</strong> ${paciente.obs}
                             </div>
                         </div>
                     </div>
@@ -843,6 +1021,9 @@
             document.getElementById('editAppointmentTime').value = paciente.hora;
             document.querySelector(`input[name="editFrequency"][value="${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}"]`).checked = true;
             document.getElementById('editPhoneNumber').value = paciente.celular;
+            document.querySelector(`input[name="editFrequency"][value="${paciente.presencial ? 'Presencial' : 'Online'}"]`).checked = true;
+            document.getElementById('editAppointmentTime').value = paciente.obs;
+            document.querySelector(`input[name="editFrequency"][value="${paciente.jápaciente ? 'Sim' : 'Nãa'}"]`).checked = true;
 
             document.getElementById('editModal').classList.remove('hidden');
             document.getElementById('editModal').classList.add('flex');
