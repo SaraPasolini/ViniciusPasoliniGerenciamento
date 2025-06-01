@@ -465,40 +465,28 @@
     </div>
 
     <script>
-        // Configuração
         const CONFIG = {
             USERNAME: 'psicologo',
             PASSWORD: 'admin123',
-            API_URL: 'https://api.jsonbin.io/v3/b/683b97298960c979a5a3a483', // Substitua pelo seu endpoint real
+            API_URL: 'http://localhost:3000/pacientes', // json-server local
             DASHBOARD_URL: 'https://app.powerbi.com'
         };
 
-        // Estado global
         let pacientes = [];
-        let idEditandoAtual = null;
 
-        // Inicializar aplicação
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', () => {
             carregarPacientesDaAPI();
             configurarEventListeners();
         });
 
         function configurarEventListeners() {
-            // Formulário de login
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
-
-            // Formulário de adicionar paciente
             document.getElementById('addPatientForm').addEventListener('submit', handleAdicionarPaciente);
-
-            // Formulário de editar paciente
             document.getElementById('editPatientForm').addEventListener('submit', handleEditarPaciente);
-
-            // Formatação de número de telefone
             document.getElementById('phoneNumber').addEventListener('input', formatarTelefone);
             document.getElementById('editPhoneNumber').addEventListener('input', formatarTelefone);
         }
 
-        // Autenticação
         function handleLogin(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
@@ -522,39 +510,25 @@
             mostrarNotificacao('Logout realizado com sucesso!', 'success');
         }
 
-        // Navegação por abas
         function mostrarAba(nomeAba) {
-            // Esconder todas as abas
-            document.querySelectorAll('.tab-content').forEach(aba => {
-                aba.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-content').forEach(aba => aba.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
 
-            // Remover classe active de todos os botões
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Mostrar aba selecionada
             const abaConteudo = document.getElementById(nomeAba + 'Content');
             const abaBotao = document.getElementById(nomeAba + 'Tab');
 
             if (abaConteudo) abaConteudo.classList.add('active');
             if (abaBotao) abaBotao.classList.add('active');
 
-            // Carregar pacientes se a aba de edição for selecionada
-            if (nomeAba === 'edit') {
-                carregarPacientesDaAPI();
-            }
+            if (nomeAba === 'edit') carregarPacientesDaAPI();
         }
 
-        // Gerenciamento de pacientes
         async function carregarPacientesDaAPI() {
             try {
-                const response = await fetch('http://localhost:3000/pacientes'); // URL do json-server
+                const response = await fetch(CONFIG.API_URL);
                 if (!response.ok) throw new Error('Erro ao carregar pacientes');
-
-                pacientes = await response.json(); // Recebe a lista direto do json-server
-                carregarPacientes(); // Atualiza a interface
+                pacientes = await response.json();
+                carregarPacientes();
                 atualizarEstatisticasDashboard();
             } catch (error) {
                 console.error('Erro:', error);
@@ -562,12 +536,10 @@
             }
         }
 
-
         async function handleAdicionarPaciente(e) {
             e.preventDefault();
 
             const frequencia = document.querySelector('input[name="frequency"]:checked').value;
-
             const dadosPaciente = {
                 nome: document.getElementById('patientName').value.trim(),
                 dia: document.getElementById('dayOfWeek').value,
@@ -576,17 +548,12 @@
                 celular: document.getElementById('phoneNumber').value.trim()
             };
 
-            // Validação
-            if (!validarDadosPaciente(dadosPaciente)) {
-                return;
-            }
+            if (!validarDadosPaciente(dadosPaciente)) return;
 
             try {
                 const response = await fetch(CONFIG.API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dadosPaciente)
                 });
 
@@ -608,7 +575,6 @@
             e.preventDefault();
 
             const frequencia = document.querySelector('input[name="editFrequency"]:checked').value;
-
             const dadosPaciente = {
                 id: document.getElementById('editPatientId').value,
                 nome: document.getElementById('editPatientName').value.trim(),
@@ -618,25 +584,19 @@
                 celular: document.getElementById('editPhoneNumber').value.trim()
             };
 
-            // Validação
-            if (!validarDadosPaciente(dadosPaciente)) {
-                return;
-            }
+            if (!validarDadosPaciente(dadosPaciente)) return;
 
             try {
                 const response = await fetch(`${CONFIG.API_URL}/${dadosPaciente.id}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dadosPaciente)
                 });
 
                 if (!response.ok) throw new Error('Erro ao atualizar paciente');
 
                 const pacienteAtualizado = await response.json();
-                const indice = pacientes.findIndex(p => p.id === pacienteAtualizado.id);
-
+                const indice = pacientes.findIndex(p => p.id == pacienteAtualizado.id);
                 if (indice !== -1) {
                     pacientes[indice] = pacienteAtualizado;
                     carregarPacientes();
@@ -651,18 +611,13 @@
         }
 
         async function excluirPaciente(id) {
-            if (!confirm('Tem certeza que deseja excluir este paciente?')) {
-                return;
-            }
+            if (!confirm('Tem certeza que deseja excluir este paciente?')) return;
 
             try {
-                const response = await fetch(`${CONFIG.API_URL}/${id}`, {
-                    method: 'DELETE'
-                });
-
+                const response = await fetch(`${CONFIG.API_URL}/${id}`, { method: 'DELETE' });
                 if (!response.ok) throw new Error('Erro ao excluir paciente');
 
-                pacientes = pacientes.filter(p => p.id !== id);
+                pacientes = pacientes.filter(p => p.id != id);
                 carregarPacientes();
                 mostrarNotificacao('Paciente excluído com sucesso!', 'success');
                 atualizarEstatisticasDashboard();
@@ -677,29 +632,25 @@
                 mostrarNotificacao('Nome deve ter pelo menos 2 caracteres!', 'error');
                 return false;
             }
-
             if (!dados.dia) {
                 mostrarNotificacao('Selecione o dia da semana!', 'error');
                 return false;
             }
-
             if (!dados.hora) {
                 mostrarNotificacao('Selecione o horário!', 'error');
                 return false;
             }
-
             if (!dados.celular || dados.celular.length < 10) {
                 mostrarNotificacao('Número de celular inválido!', 'error');
                 return false;
             }
-
             return true;
         }
 
         function carregarPacientes() {
             const listaPacientes = document.getElementById('patientsList');
 
-            if (pacientes.length === 0) {
+            if (!pacientes.length) {
                 listaPacientes.innerHTML = `
                 <div class="text-center py-12">
                     <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
@@ -710,140 +661,72 @@
                 return;
             }
 
-            const pacientesHTML = pacientes.map(paciente => `
+            listaPacientes.innerHTML = pacientes.map(paciente => `
             <div class="patient-card card" data-patient-name="${paciente.nome.toLowerCase()}">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div class="flex-1 mb-4 md:mb-0">
                         <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                            <i class="fas fa-user text-primary mr-2"></i>
-                            ${paciente.nome}
+                            <i class="fas fa-user text-primary mr-2"></i> ${paciente.nome}
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                            <div>
-                                <i class="fas fa-calendar-day text-primary mr-2"></i>
-                                <strong>Dia:</strong> ${paciente.dia.charAt(0).toUpperCase() + paciente.dia.slice(1)}
-                            </div>
-                            <div>
-                                <i class="fas fa-clock text-primary mr-2"></i>
-                                <strong>Horário:</strong> ${paciente.hora}
-                            </div>
-                            <div>
-                                <i class="fas fa-repeat text-primary mr-2"></i>
-                                <strong>Frequência:</strong> ${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}
-                            </div>
-                            <div>
-                                <i class="fas fa-phone text-primary mr-2"></i>
-                                <strong>Celular:</strong> ${paciente.celular}
-                            </div>
+                            <div><i class="fas fa-calendar-day text-primary mr-2"></i><strong>Dia:</strong> ${paciente.dia}</div>
+                            <div><i class="fas fa-clock text-primary mr-2"></i><strong>Horário:</strong> ${paciente.hora}</div>
+                            <div><i class="fas fa-repeat text-primary mr-2"></i><strong>Frequência:</strong> ${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}</div>
+                            <div><i class="fas fa-phone text-primary mr-2"></i><strong>Celular:</strong> ${paciente.celular}</div>
                         </div>
                     </div>
                     <div class="flex space-x-3">
-                        <button onclick="editarPaciente('${paciente.id}')" class="btn-secondary">
-                            <i class="fas fa-edit mr-1"></i>Editar
-                        </button>
-                        <button onclick="excluirPaciente('${paciente.id}')" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-all">
-                            <i class="fas fa-trash mr-1"></i>Excluir
-                        </button>
+                        <button onclick="editarPaciente('${paciente.id}')" class="btn-secondary"><i class="fas fa-edit mr-1"></i>Editar</button>
+                        <button onclick="excluirPaciente('${paciente.id}')" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600"><i class="fas fa-trash mr-1"></i>Excluir</button>
                     </div>
                 </div>
             </div>
         `).join('');
-
-            listaPacientes.innerHTML = pacientesHTML;
         }
 
         function editarPaciente(id) {
-            const paciente = pacientes.find(p => p.id === id);
+            const paciente = pacientes.find(p => p.id == id);
             if (!paciente) return;
 
             document.getElementById('editPatientId').value = paciente.id;
             document.getElementById('editPatientName').value = paciente.nome;
             document.getElementById('editDayOfWeek').value = paciente.dia;
             document.getElementById('editAppointmentTime').value = paciente.hora;
-            document.querySelector(`input[name="editFrequency"][value="${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}"]`).checked = true;
             document.getElementById('editPhoneNumber').value = paciente.celular;
 
-            document.getElementById('editModal').classList.remove('hidden');
-            document.getElementById('editModal').classList.add('flex');
+            const frequencia = paciente.quinzenal ? 'Quinzenal' : 'Semanal';
+            document.querySelector(`input[name="editFrequency"][value="${frequencia}"]`).checked = true;
+
+            // Aqui você pode abrir o modal de edição
+            // Exemplo: $('#editModal').modal('show');
         }
 
-        function fecharModalEdicao() {
-            document.getElementById('editModal').classList.add('hidden');
-            document.getElementById('editModal').classList.remove('flex');
-        }
-
-        function filtrarPacientes() {
-            const termoBusca = document.getElementById('searchPatients').value.toLowerCase();
-            const cardsPacientes = document.querySelectorAll('.patient-card');
-
-            cardsPacientes.forEach(card => {
-                const nomePaciente = card.getAttribute('data-patient-name');
-                if (nomePaciente.includes(termoBusca)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+        function formatarTelefone(e) {
+            let valor = e.target.value.replace(/\D/g, '');
+            if (valor.length > 10) {
+                valor = valor.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            } else {
+                valor = valor.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            }
+            e.target.value = valor;
         }
 
         function limparFormulario() {
             document.getElementById('addPatientForm').reset();
         }
 
-        // Dashboard
+        function mostrarNotificacao(msg, tipo) {
+            alert(msg); // Substitua por notificação estilizada se quiser
+        }
+
+        function fecharModalEdicao() {
+            // Feche o modal se estiver usando algum framework
+            // Ex: $('#editModal').modal('hide');
+        }
+
         function atualizarEstatisticasDashboard() {
-            const total = pacientes.length;
-            const semanais = pacientes.filter(p => !p.quinzenal).length;
-            const quinzenais = pacientes.filter(p => p.quinzenal).length;
-
-            document.getElementById('totalPatients').textContent = total;
-            document.getElementById('weeklyAppointments').textContent = semanais;
-            document.getElementById('biweeklyAppointments').textContent = quinzenais;
-        }
-
-        function abrirDashboard() {
-            window.open(CONFIG.DASHBOARD_URL, '_blank');
-            mostrarNotificacao('Redirecionando para o Power BI...', 'success');
-        }
-
-        // Funções utilitárias
-        function formatarTelefone(e) {
-            let valor = e.target.value.replace(/\D/g, '');
-
-            if (valor.length >= 11) {
-                valor = valor.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
-            } else if (valor.length >= 7) {
-                valor = valor.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-            } else if (valor.length >= 3) {
-                valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-            } else if (valor.length >= 1) {
-                valor = valor.replace(/^(\d{0,2})/, '($1');
-            }
-
-            e.target.value = valor;
-        }
-
-        function mostrarNotificacao(mensagem, tipo = 'success') {
-            const notificacao = document.createElement('div');
-            notificacao.className = `notification ${tipo}`;
-            notificacao.innerHTML = `
-            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
-            ${mensagem}
-        `;
-
-            document.body.appendChild(notificacao);
-
-            setTimeout(() => {
-                notificacao.remove();
-            }, 3000);
-        }
-
-        // Fechar modal ao clicar fora
-        window.onclick = function (event) {
-            const modal = document.getElementById('editModal');
-            if (event.target === modal) {
-                fecharModalEdicao();
-            }
+            // Se quiser fazer algo com o Power BI, você pode redirecionar ou integrar aqui.
+            // Exemplo: window.open(CONFIG.DASHBOARD_URL, '_blank');
         }
     </script>
 </body>
