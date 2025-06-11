@@ -595,13 +595,14 @@
             PASSWORD: 'admin123',
             API_URL: 'https://api.jsonbin.io/v3/b/683c8cd08960c979a5a3def8',
             API_KEY: '$2a$10$C8Gd.lDG8n41SuN9mhADSOBLPplIWnyD/BPy80O2c1cjmvfW5KSkW',
-            DASHBOARD_URL: 'https://app.powerbi.com/view?r=eyJrIjoiYjExZWQ2YzYtMzEyOS00N2UzLWI2ZTMtZmExMWRhN2UwYjQzIiwidCI6IjE0Y2JkNWE3LWVjOTQtNDZiYS1iMzE0LWNjMGZjOTcyYTE2MSIsImMiOjh9'
+            DASHBOARD_URL: 'https://app.powerbi.com/view?r=eyJrIjoiODg2N2ZlMDUtNjVlYi00MzcxLTk4Y2ItMTZjNTM2NTdhOGJkIiwidCI6IjE0Y2JkNWE3LWVjOTQtNDZiYS1iMzE0LWNjMGZjOTcyYTE2MSIsImMiOjh9'
         };
 
         // Estado global
         let pacientes = [];
         let reagendamentos = [];
         let idEditandoAtual = null;
+
 
         // Inicializar aplicação
         document.addEventListener('DOMContentLoaded', function () {
@@ -675,8 +676,7 @@
             }
         }
 
-        // Gerenciamento de pacientes
-         async function carregarPacientesDaAPI() {
+        async function carregarPacientesDaAPI() {
             try {
                 const response = await fetch(CONFIG.API_URL + '/latest', {
                     headers: {
@@ -689,33 +689,150 @@
 
                 const data = await response.json();
                 console.log('Dados completos recebidos:', data);
-                
-                // Acesso correto aos pacientes dentro da propriedade pacientes
-                const pacientesData = data.record?.pacientes || [];
-                
-                // Garante que é um array
-                pacientes = Array.isArray(pacientesData) ? pacientesData : [];
-                
+
+                const record = data.record || {};
+
+                pacientes = Array.isArray(record.pacientes) ? record.pacientes : [];
+                reagendamentos = Array.isArray(record.reagendamentos) ? record.reagendamentos : [];
+
                 console.log('Pacientes carregados:', pacientes);
+                console.log('Reagendamentos carregados:', reagendamentos);
+
                 carregarPacientes();
+
+                // Só chama se reagendamentos for array e não vazio
+                if (Array.isArray(reagendamentos) && reagendamentos.length > 0) {
+                    carregarReagendamentos(reagendamentos);
+                } else {
+                    carregarReagendamentos([]); // Mostra mensagem "nenhum reagendamento"
+                }
+
                 atualizarEstatisticasDashboard();
+
             } catch (error) {
                 console.error('Erro:', error);
                 pacientes = [];
+                reagendamentos = [];
                 carregarPacientes();
+                carregarReagendamentos([]); // Limpa lista em caso de erro
                 mostrarNotificacao('Erro ao carregar pacientes. Verifique o console.', 'error');
             }
         }
 
-        function atualizarBadgeReagendamentos() {
+        async function atualizarBadgeReagendamentos() {
+            let reagsLocal = []; // nome diferente para evitar conflito
+
+            try {
+                const response = await fetch(CONFIG.API_URL + '/latest', {
+                    headers: {
+                        'X-Master-Key': CONFIG.API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar reagendamentos');
+
+                const result = await response.json();
+                console.log('Dados completos recebidos:', result);
+
+                reagsLocal = Array.isArray(result.record?.reagendamentos) ? result.record.reagendamentos : [];
+
+                console.log('Solicitações de reagendamentos:', reagsLocal);
+            } catch (error) {
+                console.error('Erro:', error);
+                reagsLocal = [];
+                mostrarNotificacao('Erro ao carregar solicitações. Verifique o console.', 'error');
+            }
+
+            // Atualiza o badge
             const badge = document.getElementById('requestsBadge');
-            if (reagendamentos.length > 0) {
-                badge.textContent = reagendamentos.length;
+            if (reagsLocal.length > 0) {
+                badge.textContent = reagsLocal.length;
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
             }
+
+            // Atualiza a variável global reagendamentos e carrega a lista
+            reagendamentos = reagsLocal;
+            carregarReagendamentos(reagendamentos);
         }
+
+
+
+        function carregarReagendamentos(listaReagendamentosParam) {
+            const listaReagendamentos = document.getElementById('requestsList');
+
+            // Usa argumento ou global como fallback
+            let lista = Array.isArray(listaReagendamentosParam) ? listaReagendamentosParam : reagendamentos;
+
+            if (!Array.isArray(lista)) {
+                console.warn('Reagendamentos não é array ou não foi passado, usando variável global...');
+                lista = reagendamentos;
+            }
+
+            if (!lista.length) {
+                listaReagendamentos.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-500 mb-2">Nenhuma solicitação de reagendamento</h3>
+                <p class="text-gray-400">Quando houver solicitações, elas aparecerão aqui.</p>
+            </div>
+        `;
+                return;
+            }
+
+            const reagendamentosHTML = lista.map((reag, index) => {
+                const dataBruta = reag.data || reag.dataSolicitacao;
+                if (!dataBruta) return ''; // Ignora se não houver data
+
+                const dataObj = new Date(dataBruta);
+                const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                return `
+            <div class="reschedule-card card" data-index="${index}">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="flex-1 mb-4 md:mb-0">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                            <i class="fas fa-user-clock text-primary mr-2"></i>
+                            ${reag.nome || 'Paciente não identificado'}
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div>
+                                <i class="fas fa-phone text-primary mr-2"></i>
+                                <strong>Celular:</strong> ${formatarCelular(reag.celular)}
+                            </div>
+                            <div>
+                                <i class="fas fa-calendar-day text-primary mr-2"></i>
+                                <strong>Data proposta:</strong> ${dataFormatada}
+                            </div>
+                            <div>
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                <strong>Horário:</strong> ${horaFormatada}
+                            </div>
+                            <div>
+                                <i class="fas fa-calendar-alt text-primary mr-2"></i>
+                                <strong>Data completa:</strong> ${dataObj.toLocaleString('pt-BR')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 mt-4 md:mt-0">
+                        <button onclick="aprovarReagendamento(${index})" class="btn-primary">
+                            <i class="fas fa-check mr-1"></i>Aprovar
+                        </button>
+                        <button onclick="rejeitarReagendamento(${index})" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-all">
+                            <i class="fas fa-times mr-1"></i>Rejeitar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+            }).join('');
+
+            listaReagendamentos.innerHTML = reagendamentosHTML;
+        }
+
 
         async function handleAdicionarPaciente(e) {
             e.preventDefault();
@@ -1008,43 +1125,43 @@
         }
 
         function editarPaciente(id) {
-    const paciente = pacientes.find(p => p.id === id);
-    if (!paciente) return;
+            const paciente = pacientes.find(p => p.id === id);
+            if (!paciente) return;
 
-    // Preenche os campos básicos
-    document.getElementById('editPatientId').value = paciente.id;
-    document.getElementById('editPatientName').value = paciente.nome;
-    document.getElementById('editDayOfWeek').value = paciente.dia;
-    document.getElementById('editAppointmentTime').value = paciente.hora;
-    document.getElementById('editPhoneNumber').value = paciente.celular;
-    document.getElementById('editAppointmentTime').value = paciente.obs;
+            // Preenche os campos básicos
+            document.getElementById('editPatientId').value = paciente.id;
+            document.getElementById('editPatientName').value = paciente.nome;
+            document.getElementById('editDayOfWeek').value = paciente.dia;
+            document.getElementById('editAppointmentTime').value = paciente.hora;
+            document.getElementById('editPhoneNumber').value = paciente.celular;
+            document.getElementById('editAppointmentTime').value = paciente.obs;
 
-    // Preenche radio buttons COM VERIFICAÇÃO
-    const modalidade = paciente.tipo === 'presencial' ? 'Presencial' : 'Online';
-    const modalidadeRadio = document.querySelector(`input[name="editModalidade"][value="${modalidade}"]`);
-    
-    if (modalidadeRadio) {
-        modalidadeRadio.checked = true;
-    } else {
-        console.error(`Radio button para modalidade "${modalidade}" não encontrado!`);
-    }
+            // Preenche radio buttons COM VERIFICAÇÃO
+            const modalidade = paciente.tipo === 'presencial' ? 'Presencial' : 'Online';
+            const modalidadeRadio = document.querySelector(`input[name="editModalidade"][value="${modalidade}"]`);
 
-    // Verificação para frequência
-    const frequenciaRadio = document.querySelector(`input[name="editFrequency"][value="${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}"]`);
-    if (frequenciaRadio) {
-        frequenciaRadio.checked = true;
-    }
+            if (modalidadeRadio) {
+                modalidadeRadio.checked = true;
+            } else {
+                console.error(`Radio button para modalidade "${modalidade}" não encontrado!`);
+            }
 
-    // Verificação para já paciente
-    const jaPacienteRadio = document.querySelector(`input[name="editJaPaciente"][value="${paciente.jápaciente ? 'Sim' : 'Não'}"]`);
-    if (jaPacienteRadio) {
-        jaPacienteRadio.checked = true;
-    }
+            // Verificação para frequência
+            const frequenciaRadio = document.querySelector(`input[name="editFrequency"][value="${paciente.quinzenal ? 'Quinzenal' : 'Semanal'}"]`);
+            if (frequenciaRadio) {
+                frequenciaRadio.checked = true;
+            }
 
-    // Exibe o modal
-    document.getElementById('editModal').classList.remove('hidden');
-    document.getElementById('editModal').classList.add('flex');
-}
+            // Verificação para já paciente
+            const jaPacienteRadio = document.querySelector(`input[name="editJaPaciente"][value="${paciente.jápaciente ? 'Sim' : 'Não'}"]`);
+            if (jaPacienteRadio) {
+                jaPacienteRadio.checked = true;
+            }
+
+            // Exibe o modal
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+        }
 
         function fecharModalEdicao() {
             document.getElementById('editModal').classList.add('hidden');
