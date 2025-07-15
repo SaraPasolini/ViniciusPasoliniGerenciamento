@@ -1,0 +1,184 @@
+:root {
+            --primary-green: #10b981;
+            --secondary-green: #059669;
+            --light-green: #d1fae5;
+            --dark-green: #047857;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-green);
+        }
+
+        .bg-secondary {
+            background-color: var(--secondary-green);
+        }
+
+        .bg-light-green {
+            background-color: var(--light-green);
+        }
+
+        .text-primary {
+            color: var(--primary-green);
+        }
+
+        .text-secondary {
+            color: var(--secondary-green);
+        }
+
+        .border-primary {
+            border-color: var(--primary-green);
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-green);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .profile-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-green);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+        }
+
+        .btn-primary {
+            background-color: var(--primary-green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-green);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-green);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 2px solid var(--primary-green);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-green);
+        }
+
+        .form-input {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-green);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .patient-card {
+            border-left: 4px solid var(--primary-green);
+            transition: all 0.3s;
+        }
+
+        .patient-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background-color: var(--primary-green);
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .textarea-obs {
+            min-height: 100px;
+            resize: vertical;
+        }
