@@ -139,6 +139,7 @@ async function carregarPacientesDaAPI() {
       "error"
     );
   }
+  await atualizarBadgeReagendamentos();
 }
 
 async function atualizarBadgeReagendamentos() {
@@ -179,6 +180,7 @@ async function atualizarBadgeReagendamentos() {
   } else {
     badge.classList.add("hidden");
   }
+  
 
   // Atualiza a variável global reagendamentos e carrega a lista
   reagendamentos = reagsLocal;
