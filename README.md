@@ -1,6 +1,6 @@
 # Sistema de Gerenciamento para Psicólogo
 
-- O trablho "Automação de Mensagens e Ánalise de Dados Psique" foi desenvolvido para disciplina *Fundamentos de Sistemas de Informação*.
+- O trablho "Automação de Mensagens e Análise de Dados Psique" foi desenvolvido para disciplina *Fundamentos de Sistemas de Informação*.
 - O trablho foi realizado em grupo e a parte da interface de gerenciamento ficou sendo minha tarefa.
 
 # Descrição da Interface : 
