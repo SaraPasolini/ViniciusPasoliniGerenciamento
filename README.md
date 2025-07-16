@@ -31,7 +31,7 @@
 
 ## Ferramentas : 
 
-- Para desenvolver este sitema de gerenciamento utilizei as seguintes ferramentas :
+- Para desenvolver este sistema de gerenciamento utilizei as seguintes ferramentas :
 
 - <img align="center" alt="Pasolini-C#" height="30" width="40" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" /> JavaScript
 - <img align="center" alt="Pasolini-html5" height="30" width="40" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg" /> HTML 5
